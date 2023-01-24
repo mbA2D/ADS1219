@@ -1,0 +1,28 @@
+ADS1219								KEYWORD1
+
+ads1219_conf_reg					KEYWORD2
+ads1219_status_reg					KEYWORD2
+
+init								KEYWORD2
+reset								KEYWORD2
+	
+set_conf_reg						KEYWORD2
+set_mux								KEYWORD2
+set_gain							KEYWORD2
+set_dr								KEYWORD2
+set_cm								KEYWORD2
+set_vref							KEYWORD2
+
+calibrate_offset					KEYWORD2
+trigger_conversion					KEYWORD2
+shut_down							KEYWORD2
+		
+trigger_and_get_single_shot_result	KEYWORD2
+get_conversion_result				KEYWORD2
+get_drdy							KEYWORD2
+		
+set_ext_ref_v_for_calc				KEYWORD2
+measure_voltage						KEYWORD2
+	
+_set_reg_defaults					KEYWORD2
+_write_conf_reg						KEYWORD2
