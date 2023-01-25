@@ -93,16 +93,17 @@ void ADS1219::calibrate_offset()
 		_calibration_readings[i] = 0;
 		
 		int32_t reading = trigger_and_get_single_shot_result();
-		
+		//Serial.println(reading);
+
 		//drop high and low as we read the values;
 		//average the rest
 		//everything should be close to 0 so taking the sum into a 32-bit int should be fine (no overflow).
-		if (reading > max)
+		if (reading > max || max == 0)
 		{
 			_calibration_readings[i] = max;
 			max = reading;
 		}
-		else if (reading < min)
+		else if (reading < min || min == 0)
 		{
 			_calibration_readings[i] = min;
 			min = reading;
@@ -115,6 +116,8 @@ void ADS1219::calibrate_offset()
 	}
 	
 	_offset = sum / (ADS1219_NUM_MEASUREMENTS_FOR_OFFSET_CAL - 2);
+	//Serial.print("Offset: ");
+	//Serial.println(_offset);
 }
 
 void ADS1219::trigger_conversion()
@@ -151,9 +154,26 @@ int32_t ADS1219::get_conversion_result()
 	bit2 = _i2c->read();
 	bit3 = _i2c->read();
 	
-	result = (bit1<<24) & (bit2<<16) & (bit3<<8); //bitshift by 8 extra to preserve 2's complement math.
+	//Serial.print("bit1: ");
+	//Serial.print(bit1, HEX);
+	//Serial.print("  bit2: ");
+	//Serial.print(bit2, HEX);
+	//Serial.print("  bit3: ");
+	//Serial.println(bit3, HEX);
+
+	result = (result | bit1) << 8;
+	result = (result | bit2) << 8;
+	result = (result | bit3) << 8;
+	//& (bit2<<16) & (bit3<<8); //bitshift by 8 extra to preserve 2's complement math.
+	
+	//Serial.print("Combined Result: ");
+	//Serial.println(result, HEX);
 	result = result / 256;
+	//Serial.print("Divided Result: ");
+	//Serial.println(result, HEX);
 	result = result - _offset;
+	//Serial.print("Offset Result: ");
+	//Serial.println(result, HEX);
 	return result;
 }
 
@@ -187,8 +207,10 @@ float ADS1219::measure_voltage()
 	else gain = 4;
 	
 	int32_t reading = trigger_and_get_single_shot_result();
+	//Serial.print("Reading Before Scaling: ");
+	//Serial.println(reading, HEX);
 	
-	return ((reading / ADS1219_FULL_SCALE_POS_CODE) * (ref_v / gain));
+	return ((float(reading) / float(ADS1219_FULL_SCALE_POS_CODE)) * (ref_v / gain));
 
 }
 
@@ -212,4 +234,17 @@ void ADS1219::_write_conf_reg()
 	_i2c->write(ADS1219_COMMAND_WREG);
 	_i2c->write(_conf_reg.conf_byte);
 	_i2c->endTransmission();
+}
+
+uint8_t ADS1219::read_conf_reg()
+{
+	return _read_conf_reg();
+}
+
+uint8_t ADS1219::_read_conf_reg()
+{
+	_write_command_byte(ADS1219_COMMAND_RREG_CONF);
+	uint8_t response_length = 1;
+	_i2c->requestFrom(_addr, response_length);
+	return uint8_t(_i2c->read());
 }

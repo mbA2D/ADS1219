@@ -13,7 +13,7 @@
 #define ADS1219_COMMAND_START_SYNC	0x08
 #define ADS1219_COMMAND_POWERDOWN	0x02
 #define ADS1219_COMMAND_RDATA		0x10
-#define ADS1219_COMMAND_RREG_CONF	0x20 //read command register
+#define ADS1219_COMMAND_RREG_CONF	0x20 //read configuration register
 #define ADS1219_COMMAND_RREG_STATUS	0x24 //read status register
 #define ADS1219_COMMAND_WREG		0x40 //writes to configuration register
 
@@ -48,11 +48,11 @@ typedef union _ads1219_conf_reg
 {
 	struct
 	{
-		uint8_t mux: 3;
-		uint8_t gain: 1;
-		uint8_t dr: 2;
-		uint8_t cm: 1;
-		uint8_t vref: 1;
+		uint8_t vref: 1; //bit 0
+		uint8_t cm: 1; // bit 1
+		uint8_t dr: 2; // bit 2-3
+		uint8_t gain: 1; // bit 4
+		uint8_t mux: 3; // bit 5-7
 	}bits;
 	uint8_t conf_byte;
 }ads1219_conf_reg;
@@ -61,8 +61,8 @@ typedef union _ads1219_status_reg
 {
 	struct
 	{
-		uint8_t drdy: 1;
 		uint8_t res: 7; //reserved
+		uint8_t drdy: 1;
 	}bits;
 	uint8_t status_byte;
 }ads1219_status_reg;
@@ -82,7 +82,8 @@ class ADS1219
 		void set_dr(uint8_t dr);
 		void set_cm(uint8_t cm);
 		void set_vref(uint8_t vref);
-		
+		uint8_t read_conf_reg();
+
 		void calibrate_offset();
 		void trigger_conversion(); //also wakes up the analog portions of the device
 		void shut_down(); //shuts down analog portions of the device, stops continuous conversions
@@ -98,6 +99,7 @@ class ADS1219
 		void _set_reg_defaults();
 		void _write_command_byte(uint8_t command_byte);
 		void _write_conf_reg();
+		uint8_t _read_conf_reg();
 		
 		int32_t _calibration_readings[ADS1219_NUM_MEASUREMENTS_FOR_OFFSET_CAL];
 		int32_t _offset;
