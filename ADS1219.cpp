@@ -18,6 +18,7 @@ void ADS1219::init(uint8_t address, TwoWire *i2c)
 	{
 		_i2c->begin();
 	}
+	_i2c->setWireTimeout(3000, true);
 	
 	_set_reg_defaults();
 }
@@ -182,8 +183,16 @@ bool ADS1219::get_drdy()
 	_write_command_byte(ADS1219_COMMAND_RREG_STATUS);
 	
 	uint8_t response_length = 1;
+	//Serial.println("Request");
 	_i2c->requestFrom(_addr, response_length);
+	//uint8_t bytes_read = _i2c->requestFrom(_addr, response_length);
+	//Serial.print("Read: ");
+	//Serial.print(bytes_read);
+	//Serial.println(" bytes");
 	_status_reg.status_byte = _i2c->read();
+	
+	//Serial.println(_status_reg.status_byte, BIN);
+	
 	return bool(_status_reg.bits.drdy);
 }
 
@@ -226,6 +235,17 @@ void ADS1219::_write_command_byte(uint8_t command_byte)
 	_i2c->beginTransmission(_addr);
 	_i2c->write(command_byte);
 	_i2c->endTransmission();
+	//uint8_t end_return;
+	//end_return = _i2c->endTransmission();
+	//if (end_return != 0)
+	//{
+		//not successful
+	//Serial.print("End Transmission: ");
+	//Serial.print(end_return);
+	//Serial.print(" Command Byte: ");
+	//Serial.println(command_byte, HEX);
+	//}
+	
 }
 
 void ADS1219::_write_conf_reg()
