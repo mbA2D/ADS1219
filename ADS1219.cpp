@@ -18,6 +18,7 @@ void ADS1219::init(uint8_t address, TwoWire *i2c)
 	{
 		_i2c->begin();
 	}
+	_i2c->setWireTimeout(3000, true);
 	
 	_set_reg_defaults();
 }
@@ -149,7 +150,8 @@ int32_t ADS1219::get_conversion_result()
 	_write_command_byte(ADS1219_COMMAND_RDATA);
 	
 	uint8_t response_length = 3;
-	_i2c->requestFrom(_addr, response_length);
+	_wire_request_from(response_length);
+	//_i2c->requestFrom(_addr, response_length);
 	bit1 = _i2c->read();
 	bit2 = _i2c->read();
 	bit3 = _i2c->read();
@@ -182,8 +184,17 @@ bool ADS1219::get_drdy()
 	_write_command_byte(ADS1219_COMMAND_RREG_STATUS);
 	
 	uint8_t response_length = 1;
-	_i2c->requestFrom(_addr, response_length);
+	//Serial.println("Request");
+	_wire_request_from(response_length);
+	//_i2c->requestFrom(_addr, response_length);
+	//uint8_t bytes_read = _i2c->requestFrom(_addr, response_length);
+	//Serial.print("Read: ");
+	//Serial.print(bytes_read);
+	//Serial.println(" bytes");
 	_status_reg.status_byte = _i2c->read();
+	
+	//Serial.println(_status_reg.status_byte, BIN);
+	
 	return bool(_status_reg.bits.drdy);
 }
 
@@ -225,7 +236,18 @@ void ADS1219::_write_command_byte(uint8_t command_byte)
 {
 	_i2c->beginTransmission(_addr);
 	_i2c->write(command_byte);
-	_i2c->endTransmission();
+	_i2c->endTransmission(true);
+	//uint8_t end_return;
+	//end_return = _i2c->endTransmission();
+	//if (end_return != 0)
+	//{
+		//not successful
+	//Serial.print("End Transmission: ");
+	//Serial.print(end_return);
+	//Serial.print(" Command Byte: ");
+	//Serial.println(command_byte, HEX);
+	//}
+	
 }
 
 void ADS1219::_write_conf_reg()
@@ -233,7 +255,7 @@ void ADS1219::_write_conf_reg()
 	_i2c->beginTransmission(_addr);
 	_i2c->write(ADS1219_COMMAND_WREG);
 	_i2c->write(_conf_reg.conf_byte);
-	_i2c->endTransmission();
+	_i2c->endTransmission(true);
 }
 
 uint8_t ADS1219::read_conf_reg()
@@ -245,6 +267,22 @@ uint8_t ADS1219::_read_conf_reg()
 {
 	_write_command_byte(ADS1219_COMMAND_RREG_CONF);
 	uint8_t response_length = 1;
-	_i2c->requestFrom(_addr, response_length);
+	_wire_request_from(response_length);
+	//_i2c->requestFrom(_addr, response_length);
 	return uint8_t(_i2c->read());
+}
+
+uint8_t ADS1219::_wire_request_from(uint8_t num_bytes)
+{
+	uint8_t num_bytes_read = 0;
+	num_bytes_read = _i2c->requestFrom(_addr, num_bytes);
+	uint8_t timeout_count = 0;
+	while (timeout_count < 10 && _i2c->getWireTimeoutFlag())
+	{
+		//if a timeout occurred, and there were less than 10 timeouts, then try again.
+		_i2c->clearWireTimeoutFlag();
+		num_bytes_read = _i2c->requestFrom(_addr, num_bytes);
+		timeout_count++;
+	}
+	return num_bytes_read;
 }

@@ -100,6 +100,7 @@ class ADS1219
 		void _write_command_byte(uint8_t command_byte);
 		void _write_conf_reg();
 		uint8_t _read_conf_reg();
+		uint8_t _wire_request_from(uint8_t num_bytes);
 		
 		int32_t _calibration_readings[ADS1219_NUM_MEASUREMENTS_FOR_OFFSET_CAL];
 		int32_t _offset;
