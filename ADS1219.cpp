@@ -144,38 +144,24 @@ int32_t ADS1219::trigger_and_get_single_shot_result()
 
 int32_t ADS1219::get_conversion_result()
 {
-	uint8_t bit1, bit2, bit3;
+	uint8_t byte1, byte2, byte3;
 	int32_t result = 0;
 	
 	_write_command_byte(ADS1219_COMMAND_RDATA);
 	
 	uint8_t response_length = 3;
 	_wire_request_from(response_length);
-	//_i2c->requestFrom(_addr, response_length);
-	bit1 = _i2c->read();
-	bit2 = _i2c->read();
-	bit3 = _i2c->read();
-	
-	//Serial.print("bit1: ");
-	//Serial.print(bit1, HEX);
-	//Serial.print("  bit2: ");
-	//Serial.print(bit2, HEX);
-	//Serial.print("  bit3: ");
-	//Serial.println(bit3, HEX);
+	byte1 = _i2c->read();
+	byte2 = _i2c->read();
+	byte3 = _i2c->read();
 
-	result = (result | bit1) << 8;
-	result = (result | bit2) << 8;
-	result = (result | bit3) << 8;
-	//& (bit2<<16) & (bit3<<8); //bitshift by 8 extra to preserve 2's complement math.
-	
-	//Serial.print("Combined Result: ");
-	//Serial.println(result, HEX);
+	result = (result | byte1) << 8;
+	result = (result | byte2) << 8;
+	result = (result | byte3) << 8;
+
 	result = result / 256;
-	//Serial.print("Divided Result: ");
-	//Serial.println(result, HEX);
 	result = result - _offset;
-	//Serial.print("Offset Result: ");
-	//Serial.println(result, HEX);
+
 	return result;
 }
 
@@ -237,17 +223,6 @@ void ADS1219::_write_command_byte(uint8_t command_byte)
 	_i2c->beginTransmission(_addr);
 	_i2c->write(command_byte);
 	_i2c->endTransmission(true);
-	//uint8_t end_return;
-	//end_return = _i2c->endTransmission();
-	//if (end_return != 0)
-	//{
-		//not successful
-	//Serial.print("End Transmission: ");
-	//Serial.print(end_return);
-	//Serial.print(" Command Byte: ");
-	//Serial.println(command_byte, HEX);
-	//}
-	
 }
 
 void ADS1219::_write_conf_reg()

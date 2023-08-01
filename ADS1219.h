@@ -44,6 +44,7 @@
 #define ADS_1219_DRDY_FALSE		0
 #define ADS_1219_DRDY_TRUE		1
 
+
 typedef union _ads1219_conf_reg
 {
 	struct
