@@ -157,9 +157,7 @@ int32_t ADS1219::get_conversion_result()
 
 	result = (result | byte1) << 8;
 	result = (result | byte2) << 8;
-	result = (result | byte3) << 8;
-
-	result = result / 256;
+	result = (result | byte3);
 	result = result - _offset;
 
 	return result;
