@@ -162,7 +162,7 @@ int32_t ADS1219::get_conversion_result()
 	//result = (result | byte3);
 	result = result - _offset;
 
-	return result;
+	return (result << 8) >> 8; //get int32_t to properly recognize the negative format from the ADS1219 (normal twos complement negative)
 }
 
 bool ADS1219::get_drdy()
