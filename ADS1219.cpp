@@ -151,13 +151,15 @@ int32_t ADS1219::get_conversion_result()
 	
 	uint8_t response_length = 3;
 	_wire_request_from(response_length);
-	byte1 = _i2c->read();
-	byte2 = _i2c->read();
-	byte3 = _i2c->read();
+	result = _i2c->read();
+	result <<= 8;
+	result |= _i2c->read();
+	result <<= 8;
+	result |= _i2c->read();
 
-	result = (result | byte1) << 8;
-	result = (result | byte2) << 8;
-	result = (result | byte3);
+	//result = (result | byte1) << 8;
+	//result = (result | byte2) << 8;
+	//result = (result | byte3);
 	result = result - _offset;
 
 	return result;
